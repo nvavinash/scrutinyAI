@@ -112,7 +112,7 @@ try:
     from paddleocr import PaddleOCR
 
     ocr_engine = PaddleOCR(
-        lang="devanagari",
+        lang="en",
         use_textline_orientation=True
     )
 

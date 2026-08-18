@@ -17,6 +17,7 @@ function Result() {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [copiedRaw, setCopiedRaw] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
 
   // If no navigation state at all, redirect to upload
   if (!location.state) {
@@ -47,11 +48,40 @@ function Result() {
     category = 'Other',
     priority = 'Medium',
     keywords = [],
+    caseInfo = null,
+    jurisdictionResult = null,
+    courtFeeResult = null,
   } = location.state;
 
   const displayText = correctedText || ocrText || '';
   const hasText = displayText.trim().length > 0;
   const priorityClass = PRIORITY_COLORS[priority] || PRIORITY_COLORS.Medium;
+
+  const CASE_FIELDS = [
+    { key: 'applicantName', label: 'Applicant Name', hindi: 'आवेदनकर्ता का नाम' },
+    { key: 'applicantAddress', label: 'Applicant Address', hindi: 'आवेदनकर्ता का पता' },
+    { key: 'defendantName', label: 'Defendant Name', hindi: 'प्रतिवादी का नाम' },
+    { key: 'defendantAddress', label: 'Defendant Address', hindi: 'प्रतिवादी का पता' },
+    { key: 'bankName', label: 'Bank Name', hindi: 'बैंक का नाम' },
+    { key: 'bankBranch', label: 'Bank Branch', hindi: 'बैंक शाखा' },
+    { key: 'securedAssetAddress', label: 'Secured Asset / Property Address', hindi: 'प्रतिभूत संपत्ति का पता' },
+    { key: 'caseTypeOrAct', label: 'Case Type / Act', hindi: 'मामले का प्रकार / अधिनियम' },
+    { key: 'debtOrClaimAmount', label: 'Debt / Claim Amount', hindi: 'ऋण / दावे की राशि' },
+    { key: 'possessionNoticeDate', label: 'Possession Notice Date', hindi: 'कब्जा नोटिस की तिथि' },
+    { key: 'relevantOrderDate', label: 'Relevant Order / Measure Date', hindi: 'संबंधित आदेश / कार्रवाई की तिथि' },
+    { key: 'filingDate', label: 'Filing Date', hindi: 'फाइलिंग की तिथि' },
+  ];
+
+  const handleCopyJson = async () => {
+    if (!caseInfo) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(caseInfo, null, 2));
+      setCopiedJson(true);
+      setTimeout(() => setCopiedJson(false), 2000);
+    } catch {
+      alert('Failed to copy JSON.');
+    }
+  };
 
   const handleCopy = async () => {
     try {
@@ -216,6 +246,261 @@ function Result() {
               </div>
             </div>
           </details>
+        )}
+
+        {/* Extracted DRT Case Information */}
+        {caseInfo && (
+          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Extracted Case Information
+              </h2>
+              <button
+                onClick={handleCopyJson}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                  copiedJson ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700'
+                }`}
+              >
+                {copiedJson ? (
+                  <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>JSON Copied!</>
+                ) : (
+                  <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy JSON</>
+                )}
+              </button>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {CASE_FIELDS.map(({ key, label, hindi }) => {
+                  const val = caseInfo[key];
+                  return (
+                    <div key={key} className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+                        <span className="text-[11px] text-gray-400">{hindi}</span>
+                      </div>
+                      <div className="mt-1">
+                        {val !== null && val !== undefined ? (
+                          <p className="text-sm font-medium text-gray-900 break-words">{val}</p>
+                        ) : (
+                          <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">
+                            null
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Raw Structured JSON View */}
+              <details className="mt-4 pt-3 border-t border-gray-100">
+                <summary className="cursor-pointer text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center justify-between">
+                  <span>View Structured JSON</span>
+                </summary>
+                <pre className="mt-2 p-3 bg-gray-900 text-gray-100 text-xs rounded-xl overflow-x-auto font-mono">
+                  {JSON.stringify(caseInfo, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </div>
+        )}
+
+        {/* DRT Jurisdiction Result */}
+        {jurisdictionResult && (
+          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                DRT Jurisdiction Result
+              </h2>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
+                jurisdictionResult.manualVerificationRequired
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-green-50 text-green-700 border-green-200'
+              }`}>
+                {jurisdictionResult.manualVerificationRequired ? '⚠️ Manual Verification Required' : '✓ Verified Match'}
+              </span>
+            </div>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Possible DRT */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Possible DRT
+                </span>
+                {jurisdictionResult.possibleDRT ? (
+                  <p className="text-sm font-semibold text-gray-900">{jurisdictionResult.possibleDRT}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Matching Location */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Matching Location
+                </span>
+                {jurisdictionResult.matchingLocation ? (
+                  <p className="text-sm font-medium text-gray-900">{jurisdictionResult.matchingLocation}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Reason */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Reason
+                </span>
+                <p className="text-sm text-gray-800">{jurisdictionResult.reason || 'N/A'}</p>
+              </div>
+
+              {/* Rule / Source */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Rule / Source
+                </span>
+                {jurisdictionResult.ruleSource ? (
+                  <p className="text-sm font-medium text-gray-900">{jurisdictionResult.ruleSource}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Manual Verification Required */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Manual Verification Required
+                </span>
+                <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md ${
+                  jurisdictionResult.manualVerificationRequired
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {jurisdictionResult.manualVerificationRequired ? 'true' : 'false'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* COURT FEE SCRUTINY */}
+        {courtFeeResult && (
+          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                COURT FEE SCRUTINY
+              </h2>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
+                courtFeeResult.manualVerificationRequired
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-green-50 text-green-700 border-green-200'
+              }`}>
+                {courtFeeResult.manualVerificationRequired ? '⚠️ Manual Verification Required' : '✓ Calculated'}
+              </span>
+            </div>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Section */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Section
+                </span>
+                {courtFeeResult.section ? (
+                  <p className="text-sm font-semibold text-gray-900">Section {courtFeeResult.section}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Applicant Type */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Applicant Type
+                </span>
+                {courtFeeResult.applicantType ? (
+                  <p className="text-sm font-medium text-gray-900 capitalize">
+                    {courtFeeResult.applicantType === 'aggrieved_party' ? 'Aggrieved party (other than borrower)' : courtFeeResult.applicantType}
+                  </p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Claim / Debt Amount */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Claim / Debt Amount
+                </span>
+                {courtFeeResult.claimAmount !== null && courtFeeResult.claimAmount !== undefined ? (
+                  <p className="text-sm font-bold text-gray-900">
+                    ₹ {Number(courtFeeResult.claimAmount).toLocaleString('en-IN')}
+                  </p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Calculated Court Fee */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Calculated Court Fee
+                </span>
+                {courtFeeResult.calculatedFee !== null && courtFeeResult.calculatedFee !== undefined ? (
+                  <p className="text-base font-bold text-emerald-600">
+                    ₹ {Number(courtFeeResult.calculatedFee).toLocaleString('en-IN')}
+                  </p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Applicable Rule */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Applicable Rule
+                </span>
+                <p className="text-sm text-gray-800">{courtFeeResult.rule || 'N/A'}</p>
+              </div>
+
+              {/* Source */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Source
+                </span>
+                <p className="text-sm text-gray-800">{courtFeeResult.source || 'N/A'}</p>
+              </div>
+
+              {/* Status */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Status
+                </span>
+                <p className="text-sm font-medium text-gray-900">{courtFeeResult.status || 'N/A'}</p>
+              </div>
+
+              {/* Manual Verification Required */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Manual Verification Required
+                </span>
+                <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md ${
+                  courtFeeResult.manualVerificationRequired
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {courtFeeResult.manualVerificationRequired ? 'Yes' : 'No'}
+                </span>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Action Buttons */}

@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "description": "Centralized DRT Court Fee Rules as per Debts Recovery Tribunal (Procedure) Rules, 1993 and Security Interest (Enforcement) Rules, 2002.",
+  "rules": [
+    {
+      "id": "RULE_SECTION_19",
+      "section": "19",
+      "proceedingType": "Recovery of Debts under Section 19",
+      "applicantType": "any",
+      "threshold": 1000000,
+      "baseFee": 12000,
+      "slabAmount": 100000,
+      "slabFee": 1000,
+      "maximumFee": 150000,
+      "ruleName": "Rule 7 of the Debts Recovery Tribunal (Procedure) Rules, 1993",
+      "source": "Debts Recovery Tribunal (Procedure) Rules, 1993, Rule 7"
+    },
+    {
+      "id": "RULE_SECTION_17_BORROWER",
+      "section": "17",
+      "proceedingType": "Application under Section 17 against measures under Section 13(4)",
+      "applicantType": "borrower",
+      "threshold": 1000000,
+      "baseFee": 5000,
+      "baseFeeBelowThreshold": 0,
+      "slabAmount": 100000,
+      "slabFee": 250,
+      "slabFeeBelowThreshold": 500,
+      "maximumFee": 100000,
+      "ruleName": "Rule 13 of the Security Interest (Enforcement) Rules, 2002 (Borrower)",
+      "source": "Security Interest (Enforcement) Rules, 2002, Rule 13"
+    },
+    {
+      "id": "RULE_SECTION_17_NON_BORROWER",
+      "section": "17",
+      "proceedingType": "Application under Section 17 against measures under Section 13(4)",
+      "applicantType": "aggrieved_party",
+      "threshold": 1000000,
+      "baseFee": 1250,
+      "baseFeeBelowThreshold": 0,
+      "slabAmount": 100000,
+      "slabFee": 125,
+      "slabFeeBelowThreshold": 125,
+      "maximumFee": 50000,
+      "ruleName": "Rule 13 of the Security Interest (Enforcement) Rules, 2002 (Aggrieved party other than borrower)",
+      "source": "Security Interest (Enforcement) Rules, 2002, Rule 13"
+    }
+  ]
+}

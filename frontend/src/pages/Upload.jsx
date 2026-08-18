@@ -114,6 +114,9 @@ function Upload() {
           category: result.category || 'Other',
           priority: result.priority || 'Medium',
           keywords: result.keywords || [],
+          caseInfo: result.caseInfo || null,
+          jurisdictionResult: result.jurisdictionResult || null,
+          courtFeeResult: result.courtFeeResult || null,
         },
       });
     } catch (err) {

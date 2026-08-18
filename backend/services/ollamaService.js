@@ -357,7 +357,174 @@ ${ocrText.trim()}
   }
 };
 
+/**
+ * Sanitize extracted values. If a field cannot be found or contains N/A/empty indicators, return null.
+ */
+const sanitizeValue = (val) => {
+  if (val === null || val === undefined) return null;
+  if (typeof val !== 'string') val = String(val);
+  const trimmed = val.trim();
+  const lower = trimmed.toLowerCase();
+  if (
+    !trimmed ||
+    lower === 'null' ||
+    lower === 'n/a' ||
+    lower === 'na' ||
+    lower === 'not available' ||
+    lower === 'not specified' ||
+    lower === 'none' ||
+    lower === 'unknown' ||
+    lower === 'nil' ||
+    lower === 'उपलब्ध नहीं' ||
+    lower === 'अज्ञात'
+  ) {
+    return null;
+  }
+  return trimmed;
+};
+
+/**
+ * Extract structured DRT case information from corrected OCR text using Ollama LLM.
+ * Returns structured JSON containing case fields or null if not found.
+ */
+const extractCaseInfoWithOllama = async (text) => {
+  const emptyCaseInfo = {
+    applicantName: null,
+    applicantAddress: null,
+    defendantName: null,
+    defendantAddress: null,
+    bankName: null,
+    bankBranch: null,
+    securedAssetAddress: null,
+    caseTypeOrAct: null,
+    debtOrClaimAmount: null,
+    possessionNoticeDate: null,
+    relevantOrderDate: null,
+    filingDate: null,
+  };
+
+  if (!text || !text.trim()) {
+    return emptyCaseInfo;
+  }
+
+  const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
+  const modelName = process.env.OLLAMA_MODEL || 'qwen3:4b';
+
+  const prompt = `
+You are a DRT (Debt Recovery Tribunal) legal scrutiny assistant.
+Extract structured case information from the following document text (in Hindi or English).
+
+Extract ONLY these exact fields:
+1. Applicant name (आवेदनकर्ता का नाम)
+2. Applicant address (आवेदनकर्ता का पता)
+3. Defendant name (प्रतिवादी/अनावेदक का नाम)
+4. Defendant address (प्रतिवादी का पता)
+5. Bank name (बैंक का नाम)
+6. Bank branch (बैंक शाखा)
+7. Secured asset/property address (बंधक संपत्ति / प्रतिभूत संपत्ति का पता)
+8. Case type / Act (मामले का प्रकार / अधिनियम, उदा. SARFAESI Act, RDDBFI Act, Section 17, Section 19, OA, SA, आदि)
+9. Debt / claim amount (ऋण / दावे की राशि)
+10. Possession notice date (कब्जा नोटिस की तिथि)
+11. Relevant order/measure date (संबंधित आदेश / कार्रवाई की तिथि)
+12. Filing date, if available (याचिका दाखिला की तिथि)
+
+CRITICAL RULES:
+- Return ONLY a valid JSON object matching the requested schema.
+- If a field is not found or not explicitly mentioned in the text, set its value to null.
+- Do NOT guess missing information or invent details.
+- Do NOT make any legal decision.
+
+Return JSON in this format:
+{
+  "applicantName": null,
+  "applicantAddress": null,
+  "defendantName": null,
+  "defendantAddress": null,
+  "bankName": null,
+  "bankBranch": null,
+  "securedAssetAddress": null,
+  "caseTypeOrAct": null,
+  "debtOrClaimAmount": null,
+  "possessionNoticeDate": null,
+  "relevantOrderDate": null,
+  "filingDate": null
+}
+
+DOCUMENT TEXT:
+${text.trim()}
+`;
+
+  try {
+    console.log('========== EXTRACTING CASE INFO WITH OLLAMA ==========');
+    const response = await axios.post(
+      ollamaUrl,
+      {
+        model: modelName,
+        prompt: prompt,
+        stream: false,
+        format: 'json',
+        options: {
+          temperature: 0.0,
+          num_predict: 800,
+        },
+        think: false,
+      },
+      {
+        timeout: 180000,
+      }
+    );
+
+    if (response.data && response.data.response) {
+      let rawJsonText = response.data.response.trim();
+      rawJsonText = rawJsonText
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/i, '')
+        .trim();
+
+      let parsed = null;
+      try {
+        parsed = JSON.parse(rawJsonText);
+      } catch (err) {
+        const start = rawJsonText.indexOf('{');
+        const end = rawJsonText.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+          try {
+            parsed = JSON.parse(rawJsonText.substring(start, end + 1));
+          } catch (e) {}
+        }
+      }
+
+      if (parsed) {
+        const extracted = {
+          applicantName: sanitizeValue(parsed.applicantName),
+          applicantAddress: sanitizeValue(parsed.applicantAddress),
+          defendantName: sanitizeValue(parsed.defendantName),
+          defendantAddress: sanitizeValue(parsed.defendantAddress),
+          bankName: sanitizeValue(parsed.bankName),
+          bankBranch: sanitizeValue(parsed.bankBranch),
+          securedAssetAddress: sanitizeValue(parsed.securedAssetAddress),
+          caseTypeOrAct: sanitizeValue(parsed.caseTypeOrAct),
+          debtOrClaimAmount: sanitizeValue(parsed.debtOrClaimAmount),
+          possessionNoticeDate: sanitizeValue(parsed.possessionNoticeDate),
+          relevantOrderDate: sanitizeValue(parsed.relevantOrderDate),
+          filingDate: sanitizeValue(parsed.filingDate),
+        };
+        console.log('========== EXTRACTED CASE INFO ==========');
+        console.dir(extracted, { depth: null });
+        console.log('==========================================');
+        return extracted;
+      }
+    }
+  } catch (error) {
+    console.error('[Case Info Extraction Error]', error.message);
+  }
+
+  return emptyCaseInfo;
+};
+
 
 module.exports = {
   correctTextWithOllama,
-};
+  extractCaseInfoWithOllama,
+};

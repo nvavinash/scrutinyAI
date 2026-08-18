@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "totalExpectedDrts": 39,
+  "schema": {
+    "drtName": "String - Name of the Debt Recovery Tribunal",
+    "stateUt": "String - State or Union Territory",
+    "location": "String - City or location of the DRT bench",
+    "districts": "Array of Strings - List of revenue districts under jurisdiction",
+    "jurisdictionDetails": "String - Additional statutory jurisdiction rules or notes",
+    "source": "String - Official notification/reference URL or document citation"
+  },
+  "drts": []
+}
