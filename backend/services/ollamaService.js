@@ -398,9 +398,14 @@ const extractCaseInfoWithOllama = async (text) => {
     securedAssetAddress: null,
     caseTypeOrAct: null,
     debtOrClaimAmount: null,
+    causeOfActionDate: null,
+    demandNoticeDate: null,
     possessionNoticeDate: null,
+    measureDate: null,
+    orderDate: null,
     relevantOrderDate: null,
     filingDate: null,
+    otherRelevantDate: null,
   };
 
   if (!text || !text.trim()) {
@@ -424,9 +429,13 @@ Extract ONLY these exact fields:
 7. Secured asset/property address (बंधक संपत्ति / प्रतिभूत संपत्ति का पता)
 8. Case type / Act (मामले का प्रकार / अधिनियम, उदा. SARFAESI Act, RDDBFI Act, Section 17, Section 19, OA, SA, आदि)
 9. Debt / claim amount (ऋण / दावे की राशि)
-10. Possession notice date (कब्जा नोटिस की तिथि)
-11. Relevant order/measure date (संबंधित आदेश / कार्रवाई की तिथि)
-12. Filing date, if available (याचिका दाखिला की तिथि)
+10. Cause of action date (वाद कारण उत्पन्न होने की तिथि)
+11. Demand notice date (मांग नोटिस की तिथि)
+12. Possession notice date (कब्जा नोटिस की तिथि)
+13. Measure / action date (कार्रवाई की तिथि)
+14. Relevant order date (संबंधित आदेश की तिथि)
+15. Filing date, if available (याचिका दाखिला की तिथि)
+16. Other relevant date (अन्य संबंधित तिथि)
 
 CRITICAL RULES:
 - Return ONLY a valid JSON object matching the requested schema.
@@ -445,9 +454,14 @@ Return JSON in this format:
   "securedAssetAddress": null,
   "caseTypeOrAct": null,
   "debtOrClaimAmount": null,
+  "causeOfActionDate": null,
+  "demandNoticeDate": null,
   "possessionNoticeDate": null,
+  "measureDate": null,
+  "orderDate": null,
   "relevantOrderDate": null,
-  "filingDate": null
+  "filingDate": null,
+  "otherRelevantDate": null
 }
 
 DOCUMENT TEXT:
@@ -506,9 +520,14 @@ ${text.trim()}
           securedAssetAddress: sanitizeValue(parsed.securedAssetAddress),
           caseTypeOrAct: sanitizeValue(parsed.caseTypeOrAct),
           debtOrClaimAmount: sanitizeValue(parsed.debtOrClaimAmount),
+          causeOfActionDate: sanitizeValue(parsed.causeOfActionDate),
+          demandNoticeDate: sanitizeValue(parsed.demandNoticeDate),
           possessionNoticeDate: sanitizeValue(parsed.possessionNoticeDate),
-          relevantOrderDate: sanitizeValue(parsed.relevantOrderDate),
+          measureDate: sanitizeValue(parsed.measureDate),
+          orderDate: sanitizeValue(parsed.orderDate),
+          relevantOrderDate: sanitizeValue(parsed.relevantOrderDate || parsed.orderDate),
           filingDate: sanitizeValue(parsed.filingDate),
+          otherRelevantDate: sanitizeValue(parsed.otherRelevantDate),
         };
         console.log('========== EXTRACTED CASE INFO ==========');
         console.dir(extracted, { depth: null });

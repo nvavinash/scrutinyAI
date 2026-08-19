@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "description": "Limitation rules configuration for DRT and SARFAESI statutory proceedings.",
+  "rules": [
+    {
+      "id": "RULE_SARFAESI_SEC_17",
+      "section": "17",
+      "proceedingType": "SARFAESI Section 17 Application",
+      "limitationPeriod": 45,
+      "limitationUnit": "days",
+      "startingEvent": "possessionNoticeDate",
+      "ruleDescription": "An application under Section 17(1) of the SARFAESI Act must be filed within 45 days from the date on which measures under Section 13(4) were taken.",
+      "source": "Section 17(1) of the Securitisation and Reconstruction of Financial Assets and Enforcement of Security Interest Act, 2002",
+      "manualVerificationRequired": false
+    },
+    {
+      "id": "RULE_RDB_SEC_19",
+      "section": "19",
+      "proceedingType": "Section 19 Debt Recovery Application",
+      "limitationPeriod": 3,
+      "limitationUnit": "years",
+      "startingEvent": "causeOfActionDate",
+      "ruleDescription": "Under Section 24 of the Recovery of Debts and Bankruptcy Act, 1993, the Limitation Act, 1963 applies to Section 19 applications, prescribing a 3-year limitation period from when the cause of action arises.",
+      "source": "Section 24 of the Recovery of Debts and Bankruptcy Act, 1993 read with the Limitation Act, 1963",
+      "manualVerificationRequired": false
+    }
+  ]
+}

@@ -51,6 +51,7 @@ function Result() {
     caseInfo = null,
     jurisdictionResult = null,
     courtFeeResult = null,
+    limitationResult = null,
   } = location.state;
 
   const displayText = correctedText || ocrText || '';
@@ -498,6 +499,128 @@ function Result() {
                 }`}>
                   {courtFeeResult.manualVerificationRequired ? 'Yes' : 'No'}
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LIMITATION SCRUTINY */}
+        {limitationResult && (
+          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                LIMITATION SCRUTINY
+              </h2>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
+                limitationResult.manualVerificationRequired
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : limitationResult.status === 'Within limitation'
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                {limitationResult.manualVerificationRequired
+                  ? '⚠️ Manual Verification Required'
+                  : limitationResult.status === 'Within limitation'
+                  ? '✓ Within Limitation'
+                  : '⚠️ Limitation Expired'}
+              </span>
+            </div>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Relevant Date */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Relevant Date
+                </span>
+                {limitationResult.startingDate ? (
+                  <p className="text-sm font-semibold text-gray-900">{limitationResult.startingDate}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Filing Date */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Filing Date
+                </span>
+                {limitationResult.filingDate ? (
+                  <p className="text-sm font-semibold text-gray-900">{limitationResult.filingDate}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Applicable Limitation Period */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Applicable Limitation Period
+                </span>
+                {limitationResult.limitationPeriod ? (
+                  <p className="text-sm font-semibold text-gray-900">{limitationResult.limitationPeriod}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Limitation Expiry Date */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Limitation Expiry Date
+                </span>
+                {limitationResult.expiryDate ? (
+                  <p className="text-sm font-semibold text-gray-900">{limitationResult.expiryDate}</p>
+                ) : (
+                  <span className="inline-block text-xs font-mono text-gray-400 bg-gray-200/60 px-2 py-0.5 rounded">null</span>
+                )}
+              </div>
+
+              {/* Status */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Status
+                </span>
+                <p className={`text-sm font-bold ${
+                  limitationResult.status === 'Within limitation'
+                    ? 'text-emerald-600'
+                    : limitationResult.status === 'Limitation period appears expired'
+                    ? 'text-red-600'
+                    : 'text-amber-600'
+                }`}>
+                  {limitationResult.status || 'Manual verification required'}
+                </p>
+              </div>
+
+              {/* Manual Verification Required */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Manual Verification Required
+                </span>
+                <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md ${
+                  limitationResult.manualVerificationRequired
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {limitationResult.manualVerificationRequired ? 'Yes' : 'No'}
+                </span>
+              </div>
+
+              {/* Reason */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Reason
+                </span>
+                <p className="text-sm text-gray-800">{limitationResult.reason || 'N/A'}</p>
+              </div>
+
+              {/* Source */}
+              <div className="p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block mb-1">
+                  Source
+                </span>
+                <p className="text-sm text-gray-800">{limitationResult.source || 'N/A'}</p>
               </div>
             </div>
           </div>

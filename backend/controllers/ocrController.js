@@ -3,6 +3,7 @@ const { extractTextFromPdf } = require('../services/ocrService');
 const { correctTextWithOllama, extractCaseInfoWithOllama } = require('../services/ollamaService');
 const { determineJurisdiction } = require('../services/jurisdictionService');
 const { calculateCourtFee } = require('../services/courtFeeService');
+const { calculateLimitation } = require('../services/limitationService');
 
 /**
  * Controller for Upload, OCR & LLM Analysis Workflow
@@ -67,6 +68,13 @@ const processUpload = async (req, res, next) => {
     console.log(courtFeeResult);
     console.log("=======================================");
 
+    // STEP 7: Run deterministic Limitation Scrutiny Engine
+    const limitationResult = calculateLimitation(caseInfo);
+
+    console.log("========== LIMITATION RESULT ==========");
+    console.log(limitationResult);
+    console.log("=======================================");
+
     const relativePath = `uploads/${uploadedFile.filename}`;
 
     return res.status(200).json({
@@ -80,6 +88,7 @@ const processUpload = async (req, res, next) => {
       caseInfo: caseInfo,
       jurisdictionResult: jurisdictionResult,
       courtFeeResult: courtFeeResult,
+      limitationResult: limitationResult,
       message: 'PDF processed successfully.',
       filePath: relativePath,
       fileName: uploadedFile.filename,

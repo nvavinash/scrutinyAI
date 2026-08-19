@@ -117,6 +117,7 @@ function Upload() {
           caseInfo: result.caseInfo || null,
           jurisdictionResult: result.jurisdictionResult || null,
           courtFeeResult: result.courtFeeResult || null,
+          limitationResult: result.limitationResult || null,
         },
       });
     } catch (err) {
